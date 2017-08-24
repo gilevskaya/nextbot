@@ -1,37 +1,72 @@
-# Template: Typescript + Jest + Wallaby + VSCode
-Template basic project with the Typescript, Jest framework for unit tests, Wallaby config for visualization of the Jest test results and VSCode settings for the Typescript compilation.  
-* No dependencies
-* Added @types/node.js
-* Ready for npm publish (just remove dist from .gitignore)
-* Includes a simple logger
+# Nextbot 1.4.0
 
-### ⚡ Typescript setup in VSCode
-The compiler is already set up to watch for any changes in .vscode/tasks.json  
-**Ctrl+Shift+B** will activate the compiler task  
+Nextbot is a cross-platform constructor for chatbots based on the Finite-State Machine architecture.  
+You describe bot states and transitions beetween states, Nextbot does all the rest.
+
+For questions and bug reports: https://github.com/nextb1t/nextbot-core/issues
+
+## Get Started
 ```console
-npm start
-npm run dev
+npm install nextbot --save
 ```
-After compilation these commands should work. The latter will start with nodemon.
 
-  
-### ⚡ Jest setup
-```console
-npm install
-npm test
+### Hello world Example
+
+```javascript
+const { Nextbot } = require("nextbot")
+
+// Bot content description..
+let botLogic = {
+  // "start" is a system state, bot will start here
+  // "idle" is a system state too, bot will be on hold in idle
+  // "greeting" is our custom state
+  start: { GET_STARTED: { next: "greeting" } },
+  greeting: { next: "idle" }
+}
+
+let botText = {
+  greeting: { txt: "Hello, world!" }
+}
+// ..end of the Bot Content
+
+
+let bot = new Nextbot(botLogic, botText)
+
+// sending user input to bot (symbol)
+setTimeout(() => { bot.input('user-id', 'GET_STARTED') }, 2000)
+
+// waiting for the user messages to render
+bot.on('message', (event) => {
+  console.log(`[${event.userId}] Sending "${event.message.type}" message: ${msg.message.content.txt}`)
+  // you'll see: [user-id] Sending "text" message: Hello, world!
+})
 ```
-First command will install jest package, second — will run the tests. But you probably won't need it much with the wallaby.
 
-### ⚡ Wallaby setup with Jest in VSCode
-**Ctrl+Shift+=**  
--> Select Configuration File  
--> wallaby.js  
-*(once for a new project)*
+You can also see this example here: https://github.com/nextb1t/nextbot-core/blob/master/examples/javascript/hello-world.js
 
-**Ctrl+Shift+=**  
--> Start  
-*(or **Ctrl+Shift+R R**)*  
+In this example we created a Nextbot bot with one custom state **greeting**, and transition to this state sends a **text message "Hello, world!"**. This bot handles all the users. You will need to specify the User ID when sending user input to the bot. And when you'll be getting messages from the bot, you'll recieve the *userId* as a parametr.
 
+When you send the user's first user input to the bot, it creates a bot instance for this user in the state *start* and right after this it processes the input. If you want to start bot for a specific user without sending the input, use:
 
-At the end of the setup you should be looking at something like this:
-![Screenshot](https://user-images.githubusercontent.com/5485663/28102005-3b610fa6-6681-11e7-8369-d423081621d4.PNG)
+```javascript
+bot.start("user-id")
+```
+
+### Custom Transition Actions
+
+Sending *Hello, world!* text above was an example of default transition action. Keyword for the default transition in botLogic is **next** and then you need to add the message for the same state in the botText.  
+If you want to do something more comlicated than sending a message use **func** in botLogic. Optionally you can add some params here and some text constants for this transition in the botText.
+
+See the example here: https://github.com/nextb1t/nextbot-core/blob/master/examples/javascript/custom-transition.js
+
+## Typescript
+
+Nextbot also supports typescript with _IBotLogic_, _IBotText_, _IBotWait_ and _IBotAction_ interfaces for the bot description.
+
+```javascript
+import Nextbot from 'nextbot'
+```
+or
+```javascript
+import { Nextbot, IBotLogic, IBotText, IBotWait, IBotAction } from 'nextbot'
+```
